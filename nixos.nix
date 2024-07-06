@@ -261,8 +261,8 @@ in
                         let
                           userDefaultPerms = {
                             inherit (defaultPerms) mode;
-                            user = name;
-                            group = users.${userDefaultPerms.user}.group;
+                            user = config.user or name;
+                            group = config.group or users.${userDefaultPerms.user}.group;
                           };
                           fileConfig =
                             { config, ... }:
@@ -315,6 +315,22 @@ in
                                   Cannot currently be automatically
                                   deduced due to a limitation in
                                   nixpkgs.
+                                '';
+                              };
+
+                              user = mkOption {
+                                type = str;
+                                default = name;
+                                description = ''
+                                  The user to give ownership of the files.
+                                '';
+                              };
+
+                              group = mkOption {
+                                type = str;
+                                default = users.${name}.group;
+                                description = ''
+                                  The group to give ownership of the files.
                                 '';
                               };
 
@@ -593,7 +609,7 @@ in
                       home = null;
                       mode = "0700";
                       user = dir.user;
-                      group = users.${dir.user}.group;
+                      group = dir.group;
                       inherit defaultPerms;
                       inherit (dir) persistentStoragePath enableDebugging;
                     };
