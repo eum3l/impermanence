@@ -262,8 +262,8 @@ in
                         let
                           userDefaultPerms = {
                             inherit (defaultPerms) mode;
-                            user = name;
-                            group = users.${userDefaultPerms.user}.group;
+                            user = config.user or name;
+                            group = config.group or users.${userDefaultPerms.user}.group;
                           };
                           fileConfig =
                             { config, ... }:
@@ -276,6 +276,7 @@ in
                               };
                               filePath = concatPaths [ config.home config.file ];
                             };
+                          
                           userFile = submodule [
                             commonOpts
                             fileOpts
@@ -318,7 +319,23 @@ in
                                   nixpkgs.
                                 '';
                               };
+                              
+                             user = mkOption {
+                                type = str;
+                                default = name;
+                                description = ''
+                                  The user to give ownership of the files.
+                                '';
+                              };
 
+                              group = mkOption {
+                                type = str;
+                                default = users.${name}.group;
+                                description = ''
+                                  The group to give ownership of the files.
+                                '';
+                              };
+                              
                               files = mkOption {
                                 type = listOf (coercedTo str (f: { file = f; }) userFile);
                                 default = [ ];
@@ -590,10 +607,8 @@ in
                           dirPath = dir.home;
                           home = null;
                           mode = "0700";
-                          user = dir.user;
-                          group = users.${dir.user}.group;
                           inherit defaultPerms;
-                          inherit (dir) persistentStoragePath enableDebugging;
+                          inherit (dir) persistentStoragePath enableDebugging group user;
                         };
                       in
                       if dir.home != null then
